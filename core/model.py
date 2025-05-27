@@ -5,7 +5,7 @@ from openai import OpenAI
 # Load environment variables from .env file
 load_dotenv()
 
-def generate_response(system_prompt, user_prompt):
+def generate_response(system_prompt: str, user_prompt: str, temp: float = 0.7):
     """
     Generate a response using Gemini LLM.
     
@@ -34,7 +34,8 @@ def generate_response(system_prompt, user_prompt):
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
-        ]
+        ],
+        temperature=temp
     )
     
     # Return the generated response
