@@ -1,50 +1,69 @@
-# AI_Job_Matcher
+# HiredGPT Duel  
+A competitive interview simulation platform that shows how you stack up against top candidates
 
-### “HiredGPT Duel” – Competitive Chat Simulation vs. Another Applicant
-Element	Quick Pitch\ 
-Problem	Interview coaching tools ignore relative performance—you never know how you’d stack up against the other top candidate.
-Innovation	Two tracks: User vs AI rival. LLM plays both interviewer and a benchmark “star applicant” using the same résumé—but 10 % stronger in each key area. After every question the tool shows a realtime split-screen answer comparison and highlights where you lost points.
-One-We
+<img alt="HiredGPT Duel" src="https://img.shields.io/badge/Status-In Development-yellow">
+<img alt="Python" src="https://img.shields.io/badge/Python-3.9+-blue">
+<img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.28+-red">
 
-1. Resume and jd as input
-2. Generate 5 interview questions / include follow-up questions .
-2.1 generate 10% better resume for the competitor which will act as a persona.
-3. First user answers via text / speech and side by side llm (10% smarter) also answers.
-4. LLM as a scorer, grades both responses based on some criteria.
-5. Suggestions from llm on how to improve at the end.
+---
 
+## 🚀 Overview  
+**HiredGPT Duel** provides a unique interview preparation experience by simulating a head-to-head competition between you and an AI-generated "star candidate." Unlike traditional interview coaching tools that only evaluate your responses in isolation, our platform shows you how your answers compare to a top-tier candidate in real time.
 
+The AI competitor uses your same resume but with subtle enhancements, creating a realistic benchmark for improvement while giving you actionable insights on how to level up your interview performance.
 
-AI_Job_Matcher/
-├── .env                          # API keys and configuration
-├── main.py                       # Application entry point
-├── requirements.txt              # Dependencies
-├── README.md                     # Your project description
-│
-├── core/                         # Core functionality
-│   ├── __init__.py
-│   ├── model.py                  # LLM interaction (your existing file)
-│   ├── audio_to_text.py          # Speech recognition module
-│   ├── resume_enhancer.py        # Creates 10% enhanced resume for AI competitor
-│   ├── question_generator.py     # Generates interview questions from resume/JD
-│   └── response_evaluator.py     # Scores and compares user vs AI responses
-│
-├── data/                         # Data storage
-│   ├── resumes/                  # User uploaded resumes
-│   ├── job_descriptions/         # Job descriptions
-│   └── session_history/          # Saved interview sessions
-│
-├── ui/                           # User interface
-│   ├── __init__.py
-│   ├── app.py                    # Main UI wrapper (Streamlit/Flask)
-│   ├── components/               # UI components
-│   │   ├── comparison_view.py    # Side-by-side answer comparison
-│   │   ├── score_display.py      # Real-time scoring visualization
-│   │   └── chat_interface.py     # Q&A interface
-│   └── static/                   # CSS, JS, images if using web interface
-│
-└── utils/                        # Helper utilities
-    ├── __init__.py
-    ├── prompt_templates.py       # System prompts for different LLM roles
-    ├── text_processor.py         # Text processing utilities
-    └── session_manager.py        # Manages interview session state
+---
+
+## ✨ Key Features
+- **Dual-Track Interview Simulation**: Practice alongside an AI competitor to see where you stand  
+- **Resume-Based Question Generation**: Get personalized interview questions based on your resume and target job  
+- **Enhanced AI Competitor**: Compete against a slightly stronger version of yourself (10% better)  
+- **Real-Time Performance Comparison**: See side-by-side answer evaluation after each response  
+- **Voice & Text Input**: Choose your preferred way to answer questions  
+- **Detailed Scoring System**: Understand exactly where and why you gain or lose points  
+- **Actionable Improvement Suggestions**: Get concrete advice on how to improve your responses  
+
+---
+
+## 📋 How It Works
+1. Upload your resume and job description to set the interview context  
+2. The system generates 5 relevant interview questions based on your materials  
+3. Answer each question via text or voice input  
+4. See how the AI competitor answers the same question (using an enhanced version of your resume)  
+5. Review the side-by-side comparison showing strengths and weaknesses of each answer  
+6. Get a final report with actionable improvement suggestions  
+
+---
+
+## 🛠️ Technology Stack
+
+Frontend: Streamlit  
+AI Models: Google Gemini models  
+Speech Recognition: SpeechRecognition library  
+Document Processing: PDFMiner, python-docx  
+
+--- 
+
+## 🏗️ Project Structure
+
+    AI_Job_Matcher/
+    ├── .env                          # API keys and configuration
+    ├── main.py                       # Application entry point
+    ├── requirements.txt              # Dependencies
+    ├── README.md                     # Project documentation
+    │
+    ├── core/                         # Core functionality
+    │   ├── model.py                  # LLM interaction
+    │   ├── audio_to_text.py          # Speech recognition module
+    │   ├── resume_enhancer.py        # Creates enhanced resume for AI competitor
+    │   ├── question_generator.py     # Generates interview questions from resume/JD
+    │   ├── response_evaluator.py     # Scores and compares responses
+    │   └── answering_competitor.py   # AI persona generation
+    │
+    ├── data/                         # Data storage
+    │   ├── resumes/                  # User uploaded resumes
+    │   ├── job_descriptions/         # Job descriptions
+    │   └── session_history/          # Saved interview sessions
+    │
+    ├── ui/                           # User interface components
+    └── utils/                        # Helper utilities
