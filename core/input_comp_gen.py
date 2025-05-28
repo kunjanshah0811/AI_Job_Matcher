@@ -4,8 +4,8 @@ import os
 import json  # Added import for JSON parsing
 from dotenv import load_dotenv
 from openai import OpenAI
-import time
-import random
+from response_evaluator import improvement_summary
+from utils import sample_scores
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -116,6 +116,8 @@ if 'questions' not in st.session_state:
     st.session_state.questions = []
 if 'processing_complete' not in st.session_state:
     st.session_state.processing_complete = False
+if "final_feedback" not in st.session_state:
+    st.session_state["final_feedback"] = False
 
 #=== Sidebar: User Inputs ===#
 with st.sidebar:
@@ -258,9 +260,6 @@ if st.session_state.processing_complete and st.session_state.questions:
             llm_answer = st.session_state[f"llm_answer_{qn}"]
 
             if st.session_state[f"submitted_{qn}"] == False:
-                print("blurring")
-                # hidden_ans = "".join(["@" if letter != " " else " " for letter in llm_answer])
-                # st.text_area("Competitor Response",hidden_ans, height=150, key=f"hidden_ans_{qn}", label_visibility="collapsed")
                 st.markdown("""
                 <style>
                 .blurred-text {
@@ -298,29 +297,41 @@ if st.session_state.processing_complete and st.session_state.questions:
         # Scoring/Feedback
         col3, col4, col5 = st.columns([1, 1, 1])
         with col3:
-            if st.button("📊 Score & Feedback", key=f"score_{qn}"):
-                # Call LLM to compare and score
-                st.success("Your Score: 7/10\nStar Applicant's Score: 9/10")
-                st.info("💡 Tip: Give more specific examples to boost your answer.")
-
-        # Next question navigation
-        with col4:
             if st.session_state.q_num > 0:
                 if st.button("⬅️ Previous Question", key=f"prev_{qn}"):
                     st.session_state.q_num -= 1
                     st.rerun()
             
+        # Next question navigation
+        if st.session_state.q_num == len(questions)-1:
+            with col4:
+                if st.button("📊 Score & Feedback", key=f"score_{qn}"):
+                    st.session_state["final_feedback"] = True
+                    # Call LLM to compare and score
+                    # st.success("Your Score: 7/10\nStar Applicant's Score: 9/10")
+                    # st.info("💡 Tip: Give more specific examples to boost your answer.")
+        
         with col5:
-            if st.session_state.q_num < len(questions) - 1:
-                if st.button("➡️ Next Question", key=f"next_{qn}"):
-                    st.session_state.q_num += 1
-                    st.rerun()
-            else:
-                st.success("🎉 Interview Complete!")
-
+            _, right = st.columns([1,3])
+            with right:
+                if st.session_state.q_num < len(questions) - 1:
+                    st.container().align = "right"
+                    if st.button("➡️ Next Question", key=f"next_{qn}"):
+                        st.session_state.q_num += 1
+                        st.rerun()
+                else:
+                    st.success("🎉 Interview Complete!")
+        
         # Progress bar
         progress = (qn + 1) / len(questions)
         st.progress(progress, text=f"Progress: {qn + 1}/{len(questions)} questions")
+
+        if st.session_state["final_feedback"]:
+            feedback = improvement_summary(sample_scores())
+            feedback_str = ""
+            for key, value in feedback.items():
+                feedback_str += f"**{key}**: {value}\n\n"
+            st.markdown(feedback_str)
 
 elif st.session_state.processing_complete and not st.session_state.questions:
     st.error("❌ Failed to generate questions. Please try again.")

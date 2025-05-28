@@ -82,7 +82,8 @@ class Collect_score(BaseModel):
 
 def improvement_summary(scores: List[Collect_score]):
     system_prompt = """
-        You are Summarizer, a writing assistant focused on delivering concise improvement insights.
+        You are Summarizer API, which always return a correct and directly parsable JSON 
+        You are a writing assistant focused on delivering concise improvement insights.
 
         You will receive a list of objects, each containing:
         - category (string): the evaluation dimension (e.g., "structure_star", "depth", etc.)
@@ -95,10 +96,15 @@ def improvement_summary(scores: List[Collect_score]):
         3. Return a simple, plain text string of 5 lines. No extra text or formatting beyond what is specified.
         4. Merge improvement tips of same categories.
 
+        Your output must strictly follow this **parsable JSON format**:
+
         Format example:
-        **structure_star**: Consider using clearer paragraph breaks to improve organization.  
-        **depth**: Expand on your examples to show deeper understanding.  
+        {
+        structure_star: Consider using clearer paragraph breaks to improve organization.  
+        depth: Expand on your examples to show deeper understanding.  
         ...
+        }
+        
 
         """
     scores_json = json.dumps([score.model_dump() for score in scores])
@@ -109,7 +115,11 @@ def improvement_summary(scores: List[Collect_score]):
         Please provide a concise summary with formatting as described.
     """
     response = generate_response(system_prompt=system_prompt, user_prompt=user_prompt, temp=0.3)
-    return response
+    if response.startswith("```"):
+        response = trim_backticks(response)
+    
+    parsed_response = json.loads(response)
+    return parsed_response
 
 
 

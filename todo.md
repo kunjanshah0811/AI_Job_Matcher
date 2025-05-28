@@ -16,7 +16,7 @@
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
 - [x] Add next question button
-- [ ] No Need for Scrolling, Previous and Next Question button is ok.
+- [x] No Need for Scrolling, Previous and Next Question button is ok.
 - [ ] Create summary view at the end of interview
 
 ### Metrics and Analysis (Assigned to: Amal)
