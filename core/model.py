@@ -30,11 +30,13 @@ def generate_response(system_prompt, user_prompt):
     
     # Create chat completion request
     response = client.chat.completions.create(
-        model="gemini-2.0-flash-lite",
+        model="gemini-2.5-flash-preview-05-20",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
-        ]
+        ],
+        temperature=0.0
+
     )
     
     # Return the generated response
