@@ -9,7 +9,9 @@
 ### Question Generation (Assigned to: Kunjan)
 - [x] Create question generator based on resume and job description
   - [ ] [**Improve Question Quality**]
-- [ ] Add Groq Client. 
+- [ ] Add Groq Client in model.py.
+- [ ] Create utils.py file.
+- [ ] Create a separate file for question agent.
 
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
