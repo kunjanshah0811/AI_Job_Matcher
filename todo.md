@@ -8,11 +8,12 @@
 
 ### Question Generation (Assigned to: Kunjan)
 - [ ] Create question generator based on resume and job description
+  - [ ] [**Improve Question Quality**]  
 
 ### UI Components (Assigned to: Aryman)
 - [ ] Implement user per-question submit button
 - [ ] Add next question button
-- [ ] Set up scrolling functionality - one question at a time
+- [ ] No Need for Scrolling, Previous and Next Question button is ok. 
 
 ### Metrics and Analysis (Assigned to: Amal)
 - [ ] Develop per-question metrics with visualizations
