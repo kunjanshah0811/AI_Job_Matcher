@@ -1,29 +1,8 @@
 import streamlit as st
-import PyPDF2
-import os
-import json  # Added import for JSON parsing
-from dotenv import load_dotenv
-from openai import OpenAI
-from model import generate_response  
-
-def read_resume(file):
-    reader = PyPDF2.PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
-    return text.strip()
-
-def read_job_description_pdf(file):
-    """Read PDF job description"""
-    reader = PyPDF2.PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text() + "\n"
-    return text.strip()
-
-def read_job_description_txt(file):
-    """Read TXT job description"""
-    return file.read().decode("utf-8").strip()
+import json  
+from model import generate_response 
+from utils import InputCollector, FileProcessor  
+from typing import Dict, Any, List, Tuple
 
 def generate_question(resume_text, job_desc_text, job_role):
     system_prompt = "You are an experienced technical interviewer and JSON generator. You create professional interview questions and respond only with valid JSON arrays. Never include explanations, markdown formatting, or any text outside the JSON array."
@@ -96,11 +75,11 @@ def generate_question(resume_text, job_desc_text, job_role):
 def default_questions():
     """Fallback questions if API fails"""
     return [
-        "Tell me about your relevant experience for this role.",
-        "What are your key strengths and weaknesses?",
-        "Why are you interested in this position?",
-        "Describe a challenging project you've worked on.",
-        "What questions do you have about the role?"
+        "What specific skills and experience make you the best fit for this position? (Follow-up: Provide examples of applying these skills)",
+        "Describe a significant challenge in your most recent role and how you overcame it. (Follow-up: What did you learn from this experience?)",
+        "How do you stay updated with industry trends and continue learning? (Follow-up: Share a recent learning experience)",
+        "Tell me about a time you had to adapt to a major change. (Follow-up: How did you manage the transition?)",
+        "What are your expectations for this role and why do you want to join our team? (Follow-up: How does this align with your career goals?)"
     ]
 
 # Initialize session state variables
@@ -110,38 +89,41 @@ if 'questions' not in st.session_state:
     st.session_state.questions = []
 if 'processing_complete' not in st.session_state:
     st.session_state.processing_complete = False
+if 'user_answers' not in st.session_state:
+    st.session_state.user_answers = {}
 
 #=== Sidebar: User Inputs ===#
 with st.sidebar:
     st.title("AI-Job_Matcher – HiredGPT Duel")
 
-    #1 Resume Upload
+    # 1. Resume Upload
     st.header("1. Upload Your Resume")
     user_resume = st.file_uploader("Upload your resume in PDF", type=['pdf'])
 
-    #2 Job Description Upload or Paste
+    # 2. Job Description
     st.header("2. Upload or Paste Job Description")
-
     job_desc_method = st.radio("How would you like to provide the job description?",
-                            options=["Upload file", "Paste text"])
+                                options=["Upload file", "Paste text"])
+    
     if job_desc_method == "Upload file":
-        job_desc_file = st.file_uploader("Upload job description (PDF, TXT)", type=['pdf', 'txt'], key="jd")
+        job_desc_file = st.file_uploader("Upload job description (PDF, TXT)", 
+                                        type=['pdf', 'txt'], key="jd")
         job_desc_text = None
     else:
         job_desc_file = None
         job_desc_text = st.text_area("Paste the job description text here")
 
-    #3 Improvement Percentage or Manual Input
+    # 3. Star Competitor Settings
     st.header("3. Star Competitor Settings")
-    improve_percentage = st.slider("How much stronger should the rival be? (%)", min_value=5, max_value=50, value=10, step=5)
+    improve_percentage = st.slider("How much stronger should the rival be? (%)", 
+                                min_value=5, max_value=50, value=10, step=5)
 
-    #4 Job Role/Title Input
+    # 4. Job Role/Title
     st.header("4. Job Role/Title")
     job_role = st.text_input("Job role/title you're applying for")
 
-    #5 Submit Button
+    # 5. Submit Button
     submit = st.button("Submit - (Next: generate rival resume and interview questions)")
-
     # Status messages in sidebar
     if submit or st.session_state.processing_complete:
         st.subheader("📋 Processing Status")
@@ -168,7 +150,7 @@ if submit:
     resume_text = ""
     if user_resume:
         try:
-            resume_text = read_resume(user_resume)
+            resume_text = FileProcessor.read_resume(user_resume)
             with st.sidebar:
                 st.success("✅ Resume uploaded successfully!")
         except Exception as e:
@@ -180,9 +162,9 @@ if submit:
     if job_desc_file:
         try:
             if job_desc_file.type == "application/pdf":
-                jd_text = read_job_description_pdf(job_desc_file)   
+                jd_text = FileProcessor.read_job_description_pdf(job_desc_file)   
             elif job_desc_file.type == "text/plain":
-                jd_text = read_job_description_txt(job_desc_file)  
+                jd_text = FileProcessor.read_job_description_txt(job_desc_file)  
             else:
                 st.error("Unsupported file type for job description.")
                 st.stop()
@@ -199,7 +181,7 @@ if submit:
     else:
         st.error("Please provide the job description to continue.")
         st.stop()
-    
+
     if resume_text and jd_text:
         # Show preview in main area
         st.success("🎉 All files processed successfully!")
@@ -211,7 +193,7 @@ if submit:
 
         #3 Generate Interview Questions
         with st.spinner("🤖 Generating interview questions..."):
-            st.session_state.questions = generate_question(resume_text, jd_text, job_role)
+            st.session_state.questions = generate_question(resume_text, jd_text,job_role)
             st.session_state.processing_complete = True
             
         with st.sidebar:
@@ -224,6 +206,9 @@ if st.session_state.processing_complete and st.session_state.questions:
     qn = st.session_state.q_num
     questions = st.session_state.questions
 
+    if 'user_answers' not in st.session_state:
+        st.session_state.user_answers = {}
+
     if qn < len(questions):
         st.subheader(f"Question {qn+1}/{len(questions)}:")
         st.info(questions[qn])
@@ -232,7 +217,23 @@ if st.session_state.processing_complete and st.session_state.questions:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("**👤 Your Answer:**")
-            user_answer = st.text_area("Type your answer here", key=f"user_ans_{qn}", height=150)
+            current_answer = st.session_state.user_answers.get(qn, "")
+            user_answer = st.text_area(
+                "Type your answer here (max 500 characters)", 
+                value=current_answer,
+                key=f"user_ans_{qn}", 
+                height=150,
+                max_chars=500
+            )
+            
+            if st.button("Submit Answer", key=f"submit_ans_{qn}"):
+                if len(user_answer.strip()) == 0:
+                    st.error("Please provide an answer before submitting.")
+                elif len(user_answer) > 500:
+                    st.error("Answer exceeds 500 characters limit.")
+                else:
+                    st.session_state.user_answers[qn] = user_answer
+                    st.success("Answer submitted successfully!")
 
         with col2:
             st.markdown("**🤖 Rival's Answer:**")
@@ -270,13 +271,14 @@ if st.session_state.processing_complete and st.session_state.questions:
 
 elif st.session_state.processing_complete and not st.session_state.questions:
     st.error("❌ Failed to generate questions. Please try again.")
-    
+
+
 # Reset button in sidebar
 if st.session_state.processing_complete:
     with st.sidebar:
         st.divider()
         if st.button("🔄 Start New Interview", type="secondary"):
-            for key in ['q_num', 'questions', 'processing_complete']:
+            for key in ['q_num', 'questions', 'processing_complete', 'user_answers']:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
