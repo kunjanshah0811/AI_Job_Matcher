@@ -1,7 +1,7 @@
 import streamlit as st
 import json  
 from model import generate_response 
-from utils import InputCollector, FileProcessor  
+from utils import FileProcessor  
 from typing import Dict, Any, List, Tuple
 
 def generate_question(resume_text, job_desc_text, job_role):
@@ -186,10 +186,10 @@ if submit:
         # Show preview in main area
         st.success("🎉 All files processed successfully!")
         
-        with st.expander("📄 View Resume Preview", expanded=False):
-            st.write(resume_text[:3000] + "..." if len(resume_text) > 3000 else resume_text) 
-        with st.expander("📋 View Job Description Preview", expanded=False):
-            st.write(jd_text[:3000] + "..." if len(jd_text) > 3000 else jd_text)
+        # with st.expander("📄 View Resume Preview", expanded=False):
+        #     st.write(resume_text[:3000] + "..." if len(resume_text) > 3000 else resume_text) 
+        # with st.expander("📋 View Job Description Preview", expanded=False):
+        #     st.write(jd_text[:3000] + "..." if len(jd_text) > 3000 else jd_text)
 
         #3 Generate Interview Questions
         with st.spinner("🤖 Generating interview questions..."):
@@ -218,23 +218,36 @@ if st.session_state.processing_complete and st.session_state.questions:
         with col1:
             st.markdown("**👤 Your Answer:**")
             current_answer = st.session_state.user_answers.get(qn, "")
-            user_answer = st.text_area(
-                "Type your answer here (max 500 characters)", 
-                value=current_answer,
-                key=f"user_ans_{qn}", 
-                height=150,
-                max_chars=500
-            )
+            answer_submitted = qn in st.session_state.user_answers
             
-            if st.button("Submit Answer", key=f"submit_ans_{qn}"):
-                if len(user_answer.strip()) == 0:
-                    st.error("Please provide an answer before submitting.")
-                elif len(user_answer) > 500:
-                    st.error("Answer exceeds 500 characters limit.")
-                else:
-                    st.session_state.user_answers[qn] = user_answer
-                    st.success("Answer submitted successfully!")
-
+            if answer_submitted:
+                # Show submitted answer as read-only
+                st.text_area(
+                    "Your submitted answer:", 
+                    value=current_answer,
+                    key=f"readonly_ans_{qn}", 
+                    height=150,
+                    disabled=True
+                )
+                st.success("✅ Answer submitted successfully!")
+            else:
+                # Allow editing only if answer not submitted
+                user_answer = st.text_area(
+                    "Type your answer here (max 500 characters)", 
+                    value=current_answer,
+                    key=f"user_ans_{qn}", 
+                    height=150,
+                    max_chars=500
+                )
+                
+                if st.button("Submit Answer", key=f"submit_ans_{qn}"):
+                    if len(user_answer.strip()) == 0:
+                        st.error("Please provide an answer before submitting.")
+                    elif len(user_answer) > 500:
+                        st.error("Answer exceeds 500 characters limit.")
+                    else:
+                        st.session_state.user_answers[qn] = user_answer
+                        st.rerun()
         with col2:
             st.markdown("**🤖 Rival's Answer:**")
             if st.button("Generate Rival's Answer", key=f"rival_ans_{qn}"):
@@ -253,9 +266,13 @@ if st.session_state.processing_complete and st.session_state.questions:
         # Next question navigation
         with col4:
             if st.session_state.q_num < len(questions) - 1:
-                if st.button("➡️ Next Question", key=f"next_{qn}"):
-                    st.session_state.q_num += 1
-                    st.rerun()
+                answer_submitted = qn in st.session_state.user_answers
+                if answer_submitted:
+                    if st.button("➡️ Next Question", key=f"next_{qn}"):
+                        st.session_state.q_num += 1
+                        st.rerun()
+                else:
+                    st.button("➡️ Next Question", key=f"next_{qn}", disabled=True, help="Please submit your answer first")
             else:
                 st.success("🎉 Interview Complete!")
                 
