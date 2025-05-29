@@ -2,15 +2,7 @@ import streamlit as st
 import PyPDF2
 import os
 import json  # Added import for JSON parsing
-from dotenv import load_dotenv
-from openai import OpenAI
-
-load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-client = OpenAI(
-    api_key=api_key,
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-)
+from model import generate_response
 
 def read_resume(file):
     reader = PyPDF2.PdfReader(file)
@@ -32,8 +24,9 @@ def read_job_description_txt(file):
     return file.read().decode("utf-8").strip()
 
 def generate_question(resume_text, job_desc_text, job_role):
-    prompt = f"""
-    You are an interview coach. Based on this resume and job description, generate exactly 5 interview questions for the role "{job_role}".
+    system_prompt = f"""
+    You are an interview coach.Based on this resume and job description, 
+    generate exactly 5 interview questions for the role "{job_role}".
 
     Resume:
     {resume_text}
@@ -46,15 +39,12 @@ def generate_question(resume_text, job_desc_text, job_role):
 
     Example format: ["Question 1 here", "Question 2 here", "Question 3 here", "Question 4 here", "Question 5 here"]
     """
-    response = client.chat.completions.create(
-        model="gemini-2.0-flash-lite",
-        messages=[
-            {"role": "system", "content": "You are a JSON generator. You only respond with valid JSON arrays. Never include explanations or markdown formatting."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7,
 
-    )
+    user_prompt="""You are a JSON generator. You only respond with valid JSON arrays. 
+                    Never include explanations or markdown formatting.
+                """
+    
+    response = generate_response(system_prompt,user_prompt)
     text = response.choices[0].message.content.strip()
     #st.write("Raw API Response:", text)  # Debug line
 
@@ -112,7 +102,7 @@ if 'processing_complete' not in st.session_state:
 
 #=== Sidebar: User Inputs ===#
 with st.sidebar:
-    st.title("AI-Job_Matcher – HiredGPT Duel")
+    st.title("HiredGPT Duel")
 
     #1 Resume Upload
     st.header("1. Upload Your Resume")
