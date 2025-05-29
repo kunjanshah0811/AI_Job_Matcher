@@ -30,3 +30,11 @@
 - [ ] Implement voice input functionality
 - [ ] Add competitor text-to-speech capability
 - [ ] Add downloadable txt file for session results
+
+
+- [ ] Remove Resume and JD preview from top
+- [ ] Interview Duel should always be displayed.
+- [ ] Time skip for rival answer.
+- [ ] Rival answer duplication.
+- [ ] Submit button twice click issue.
+      
