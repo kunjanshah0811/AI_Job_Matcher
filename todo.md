@@ -37,4 +37,5 @@
 - [ ] Time skip for rival answer.
 - [ ] Rival answer duplication.
 - [ ] Submit button twice click issue.
+- [ ] Deployment of the whole app and hosting.  
       
