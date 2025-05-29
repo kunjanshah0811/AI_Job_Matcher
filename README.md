@@ -40,7 +40,7 @@ The AI competitor uses your same resume but with subtle enhancements, creating a
 Frontend: Streamlit  
 AI Models: Google Gemini models  
 Speech Recognition: SpeechRecognition library  
-Document Processing: PDFMiner, python-docx  
+Document Processing:PyPDF2  
 
 --- 
 
@@ -54,8 +54,8 @@ Document Processing: PDFMiner, python-docx
     │
     ├── core/                         # Core functionality
     │   ├── model.py                  # LLM interaction
-    │   ├── audio_to_text.py          # Speech recognition module
-    │   ├── resume_enhancer.py        # Creates enhanced resume for AI competitor
+    │   ├── speech_converter.py       # Speech recognition module
+    │   ├── input_comp_gen.py         # UI
     │   ├── question_generator.py     # Generates interview questions from resume/JD
     │   ├── response_evaluator.py     # Scores and compares responses
     │   └── answering_competitor.py   # AI persona generation

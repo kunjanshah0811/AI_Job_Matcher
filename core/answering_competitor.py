@@ -1,4 +1,5 @@
 from model import generate_response
+from test import resume, jd,questions
 
 class Answering_competitor:
     def __init__(self,resume,job_description,difficulty_level,questions):
@@ -119,120 +120,9 @@ class Answering_competitor:
         return answers
 
 if __name__=="__main__":
-    resume= """
-                ALEX JOHNSON
-                Email: alex.johnson@email.com | Phone: (555) 123-4567
-                Address: Seattle, WA 98101 | LinkedIn: linkedin.com/in/alexjohnson
-                GitHub: github.com/ajohnson
-
-                PROFESSIONAL SUMMARY
-                Detail-oriented Computer Engineer with a strong foundation in software development and hardware systems. 
-                Skilled in programming languages including Python, Java, and C++. 
-                Passionate about creating efficient solutions and implementing new technologies.
-
-                EDUCATION
-                BACHELOR OF SCIENCE IN COMPUTER ENGINEERING
-                University of Washington
-                2018 - 2022
-                Relevant Coursework: Computer Architecture, Digital Systems Design, Software Engineering, Database Systems, Operating Systems
-
-                TECHNICAL SKILLS
-                • Programming Languages: Python, Java, C++, JavaScript
-                • Hardware: PCB Design, Microcontroller Programming, Digital Circuit Design
-                • Software: MATLAB, Visual Studio, Git, Linux/Unix
-                • Web Technologies: HTML, CSS, React.js
-                • Database Systems: SQL, MongoDB
-
-                PROJECTS
-                SMART HOME MONITORING SYSTEM
-                • Designed and built an IoT-based monitoring system using Raspberry Pi and Arduino
-                • Implemented sensors for temperature, humidity, and motion detection
-                • Created a web interface for remote monitoring using React.js and Node.js
-
-                INVENTORY MANAGEMENT APPLICATION
-                • Developed a desktop application for inventory tracking using Java
-                • Implemented database functionality with MySQL for data persistence
-                • Created user-friendly interface with filtering and reporting capabilities
-
-                EXPERIENCE
-                SOFTWARE ENGINEERING INTERN
-                TechSolutions Inc. | Seattle, WA
-                Summer 2021
-                • Assisted in developing and testing code for client-facing applications
-                • Participated in code reviews and debugging sessions
-                • Collaborated with team members using Agile methodology
-                • Documented software processes and requirements
-
-                COMPUTER LAB ASSISTANT
-                University of Washington | Seattle, WA
-                2019 - 2022
-                • Assisted students with hardware and software troubleshooting
-                • Maintained lab equipment and installed software updates
-                • Conducted basic workshops on programming fundamentals
-
-                CERTIFICATIONS
-                • CompTIA A+ Certification - 2021
-                • Cisco Certified Network Associate (CCNA) - 2022
-            """
-
-    jd="""
-        COMPANY: Tech Innovations Inc.
-        LOCATION: San Francisco, CA (Hybrid)
-        POSITION: Software Engineer
-
-        ABOUT US:
-        Tech Innovations Inc. is a leading software company specializing in cloud-based solutions and AI-driven applications. 
-        We are currently seeking a talented and motivated Software Engineer to join our growing development team.
-
-        JOB DESCRIPTION:
-        We are looking for a Software Engineer with strong programming skills to design, develop, and maintain efficient, reusable, and reliable code. You will be part of a cross-functional team that is responsible for the full software development life cycle, from conception to deployment.
-
-        RESPONSIBILITIES:
-        • Design and develop high-quality software solutions that meet project requirements
-        • Write clean, maintainable, and efficient code following best practices
-        • Collaborate with cross-functional teams to define, design, and ship new features
-        • Troubleshoot, debug, and upgrade existing systems
-        • Participate in code reviews and mentor junior developers
-        • Work with product managers to understand end-user requirements and translate them into technical specifications
-        • Ensure the performance, quality, and responsiveness of applications
-        • Monitor and improve application performance and reliability
-
-        REQUIREMENTS:
-        • Bachelor's degree in Computer Science, Engineering, or related field
-        • 2+ years of professional software development experience
-        • Strong proficiency in one or more programming languages (Java, Python, C++, JavaScript)
-        • Experience with front-end technologies (React, Angular, or Vue.js)
-        • Knowledge of database systems (SQL, NoSQL) and data structures
-        • Familiarity with version control tools (Git) and continuous integration processes
-        • Strong problem-solving skills and attention to detail
-        • Excellent communication and teamwork skills
-        • Experience with cloud services (AWS, Azure, or GCP) preferred
-        • Knowledge of agile development methodologies
-
-        WHAT WE OFFER:
-        • Competitive salary and benefits package
-        • Professional growth opportunities
-        • Flexible work arrangements
-        • Collaborative and innovative work environment
-        • Opportunity to work with cutting-edge technologies
-        • Regular team building activities and events
-
-        Tech Innovations Inc. is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees.
-
-        """
-    
-    questions= [
-    "Tell me about your experience with software development and how it prepares you for this role.",
-    "Describe a challenging project you worked on and how you approached problem-solving during its development.",
-    "How do you stay current with emerging technologies and programming languages in the fast-paced tech industry?",
-    "Can you share your experience working in Agile development environments and how you collaborate with cross-functional teams?",
-    "What experience do you have with cloud services, and how have you implemented them in your previous projects?"
-    ]   
-
     obj=Answering_competitor(resume,jd,20,questions)  
     factors=obj.extract_factors()  
     obj.determine_enhancement()
     competitor_resume=obj.generate_resume()
     answers=obj.answer_questions()
-
     print(answers)
