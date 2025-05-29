@@ -8,26 +8,27 @@
 
 ### Question Generation (Assigned to: Kunjan)
 - [x] Create question generator based on resume and job description
-  - [ ] [**Improve Question Quality**]
-- [ ] Add Groq Client in model.py.
-- [ ] Create utils.py file.
-- [ ] Create a separate file for question agent.
+  - [x] [**Improve Question Quality**]
+- [x] Add Groq Client in model.py.
+- [x] Create utils.py file.
+- [ ] Create a separate file for the question agent
 
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
 - [x] Add next question button
-- [ ] No Need for Scrolling, Previous and Next Question button is ok.
-- [ ] Create summary view at the end of interview
+- [x] No Need for Scrolling, Previous and Next Question button is ok.
+- [ ] Create a summary view at the end of interview (UI)
+  - [ ] Generate a summary prompt  
 
 ### Metrics and Analysis (Assigned to: Amal)
-- [ ] Develop per-question metrics with visualizations
-- [ ] Implement competitor resume enhancement:
+- [x] Develop per-question metrics with visualizations
+- [x] Implement competitor resume enhancement:
   - [x] Extract 5 key factors from job description
-  - [ ] For each experience/project, level up with respect to the 5 factors
+  - [x] For each experience/project, level up with respect to the 5 factors
 
 ## Low Priority Tasks
-- [ ] Add user character limit / time limit 
-- [ ] Implement voice input functionality
+- [x] Add user character limit/time limit 
+- [ ] Implement voice input functionality on streamlit (st.audio_input)
 - [ ] Add competitor text-to-speech capability
 - [ ] Add downloadable txt file for session results
 
