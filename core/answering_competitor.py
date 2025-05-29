@@ -125,5 +125,4 @@ if __name__=="__main__":
     obj.determine_enhancement()
     competitor_resume=obj.generate_resume()
     answers=obj.answer_questions()
-
     print(answers)

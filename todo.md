@@ -12,6 +12,10 @@
 - [x] Add Groq Client in model.py.
 - [x] Create utils.py file.
 - [ ] Create a separate file for the question agent
+  - [x] [**Improve Question Quality**]
+- [x] Add Groq Client in model.py.
+- [x] Create utils.py file.
+- [ ] Create a separate file for the question agent
 
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
@@ -19,14 +23,22 @@
 - [x] No Need for Scrolling, Previous and Next Question button is ok.
 - [ ] Create a summary view at the end of interview (UI)
   - [ ] Generate a summary prompt  
+- [x] No Need for Scrolling, Previous and Next Question button is ok.
+- [ ] Create a summary view at the end of interview (UI)
+  - [ ] Generate a summary prompt  
 
 ### Metrics and Analysis (Assigned to: Amal)
 - [x] Develop per-question metrics with visualizations
 - [x] Implement competitor resume enhancement:
+- [x] Develop per-question metrics with visualizations
+- [x] Implement competitor resume enhancement:
   - [x] Extract 5 key factors from job description
+  - [x] For each experience/project, level up with respect to the 5 factors
   - [x] For each experience/project, level up with respect to the 5 factors
 
 ## Low Priority Tasks
+- [x] Add user character limit/time limit 
+- [ ] Implement voice input functionality on streamlit (st.audio_input)
 - [x] Add user character limit/time limit 
 - [ ] Implement voice input functionality on streamlit (st.audio_input)
 - [ ] Add competitor text-to-speech capability
