@@ -69,5 +69,13 @@ jd= """
 
 jr="Front-End Developer"
 
+questions= [
+    "Tell me about your experience with software development and how it prepares you for this role.",
+    "Describe a challenging project you worked on and how you approached problem-solving during its development.",
+    "How do you stay current with emerging technologies and programming languages in the fast-paced tech industry?",
+    "Can you share your experience working in Agile development environments and how you collaborate with cross-functional teams?",
+    "What experience do you have with cloud services, and how have you implemented them in your previous projects?"
+    ]   
+
 if __name__ == "__main__":
     print("Test data loaded")

@@ -2,7 +2,9 @@ import streamlit as st
 import PyPDF2
 import os
 import json  # Added import for JSON parsing
-from model import generate_response
+from dotenv import load_dotenv
+from openai import OpenAI
+from model import generate_response  
 
 def read_resume(file):
     reader = PyPDF2.PdfReader(file)
@@ -24,28 +26,37 @@ def read_job_description_txt(file):
     return file.read().decode("utf-8").strip()
 
 def generate_question(resume_text, job_desc_text, job_role):
-    system_prompt = f"""
-    You are an interview coach.Based on this resume and job description, 
-    generate exactly 5 interview questions for the role "{job_role}".
+    system_prompt = "You are an experienced technical interviewer and JSON generator. You create professional interview questions and respond only with valid JSON arrays. Never include explanations, markdown formatting, or any text outside the JSON array."
+    
+    user_prompt = f"""
+    You are conducting a technical interview for the "{job_role}" position. 
+    
+    Based on the candidate's resume and job requirements, generate exactly 5 technical interview questions that:
+    1. Test relevant technical skills mentioned in the job description
+    2. Assess the candidate's experience from their resume
+    3. Include appropriate follow-up questions to dive deeper
+    4. Progress from foundational to advanced concepts
+    5. Are specific to the role and industry
 
-    Resume:
+    Resume Background:
     {resume_text}
 
-    Job Description:
+    Job Requirements:
     {job_desc_text}
 
-    Generate 5 relevant interview questions. Include follow-up prompts in parentheses if needed.
+    Generate 5 technical interview questions with follow-up probes. Format each question to include the main question and potential follow-up in parentheses.
+
+    Example format for a software role:
+    - "Explain how you implemented [specific technology from resume]. (Follow-up: What challenges did you face and how did you optimize performance?)"
+    - "The job requires [specific requirement]. Walk me through how you would approach this. (Follow-up: How would you handle scalability concerns?)"
+
     You must respond with ONLY a valid JSON array of strings. No explanations, no markdown, just the JSON array.
-
-    Example format: ["Question 1 here", "Question 2 here", "Question 3 here", "Question 4 here", "Question 5 here"]
     """
+    # Use generate_response instead of direct client call
+    response = generate_response(system_prompt, user_prompt, temp=0.7)
+                                 
 
-    user_prompt="""You are a JSON generator. You only respond with valid JSON arrays. 
-                    Never include explanations or markdown formatting.
-                """
-    
-    response = generate_response(system_prompt,user_prompt)
-    text = response.choices[0].message.content.strip()
+    text = response.strip()
     #st.write("Raw API Response:", text)  # Debug line
 
     try:
@@ -102,7 +113,7 @@ if 'processing_complete' not in st.session_state:
 
 #=== Sidebar: User Inputs ===#
 with st.sidebar:
-    st.title("HiredGPT Duel")
+    st.title("AI-Job_Matcher – HiredGPT Duel")
 
     #1 Resume Upload
     st.header("1. Upload Your Resume")
