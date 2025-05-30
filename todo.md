@@ -16,7 +16,7 @@
 - [x] Add Groq Client in model.py.
 - [x] Create utils.py file.
 - [x] Create a separate file for the question agent
-- [ ] Integrate Whisper STT Agent
+- [x] Integrate Whisper STT Agent
 
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
@@ -43,7 +43,7 @@
 - [x] Add user character limit/time limit 
 - [x] Add competitor text-to-speech capability
       
-- [ ] Add downloadable txt file for session results
+- [x] Add downloadable txt file for session results
 
 
 - [x] Remove Resume and JD preview from top.
