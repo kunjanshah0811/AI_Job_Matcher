@@ -5,49 +5,60 @@ import os
 import time
 import pyttsx3
 
-def audio_to_text():
+def audio_to_text(audio_file_path=None):
     """
-    Captures speech input from the microphone and converts it to text.
-    Returns the transcribed text or handles error message.
+    Converts audio file to text using speech recognition.
+    If audio_file_path is provided, uses that file. Otherwise captures from microphone.
+    Returns the transcribed text or None if error.
     """
-    freq = 44100
-    duration = 180
-    channels = 1
-    recording_file = "recording.wav"
-
-    print("🎤 You can answer now")
-    print(f"Recording will automatically stop after {duration} seconds")
-        
-    recording = sd.rec(int(duration*freq), samplerate=freq, channels=channels)
-    
-    # Show progress during recording
-    for i in range(duration):
-        time.sleep(1)
-        seconds_left = duration - i - 1
-        print(f"⏱️ {seconds_left} seconds remaining...", end="\r")
-    
-    print("Thank you for your answer")
-    sd.wait()
-    wv.write(recording_file, recording, freq, sampwidth=2)
-
     r = sr.Recognizer()
     text = None
-
+    
     try:
-        with sr.AudioFile(recording_file) as source:
-            audio = r.record(source)
+        if audio_file_path:
+            # Use provided audio file
+            with sr.AudioFile(audio_file_path) as source:
+                audio = r.record(source)
+        else:
+            # Original microphone capture logic
+            freq = 44100
+            duration = 180
+            channels = 1
+            recording_file = "recording.wav"
             
+            print("🎤 You can answer now")
+            print(f"Recording will automatically stop after {duration} seconds")
+                     
+            recording = sd.rec(int(duration*freq), samplerate=freq, channels=channels)
+             
+            for i in range(duration):
+                time.sleep(1)
+                seconds_left = duration - i - 1
+                print(f"⏱️ {seconds_left} seconds remaining...", end="\r")
+                 
+            print("Thank you for your answer")
+            sd.wait()
+            wv.write(recording_file, recording, freq, sampwidth=2)
+            
+            with sr.AudioFile(recording_file) as source:
+                audio = r.record(source)
+            
+            # Clean up recording file
+            if os.path.exists(recording_file):
+                os.remove(recording_file)
+                     
         text = r.recognize_google(audio)
         return text
+        
     except sr.UnknownValueError:
         print("Sorry, I couldn't understand what you said. Please try again.")
         return None
     except sr.RequestError as e:
         print(f"Speech recognition service error: {e}")
         return None
-    finally:
-        if os.path.exists(recording_file):
-            os.remove(recording_file)
+    except Exception as e:
+        print(f"Audio processing error: {e}")
+        return None
 
 def text_to_audio(text):
     engine=pyttsx3.init()
