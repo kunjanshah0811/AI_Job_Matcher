@@ -2,12 +2,12 @@ import streamlit as st
 import json
 from datetime import datetime
 
-from utils import FileProcessor, star_rating, least_scores
-from question_generator import generate_question
-from answering_competitor import Answering_competitor
-from response_evaluator import scorer, improvement_summary
-from summary_utils import custom_css, generate_text_summary, clean_json_response
-from generate_summary import generate_summary_content
+from core.utils import FileProcessor, star_rating
+from core.question_generator import generate_question
+from core.answering_competitor import Answering_competitor
+from core.response_evaluator import scorer
+from core.summary_utils import custom_css, generate_text_summary, clean_json_response
+from core.generate_summary import generate_summary_content
 
 
 # Page configuration

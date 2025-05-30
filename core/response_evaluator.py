@@ -1,8 +1,8 @@
-from model import generate_response
+from core.model import generate_response
 import json
 from typing import List
 from pydantic import BaseModel
-from utils import trim_backticks, Collect_score
+from core.utils import trim_backticks, Collect_score
 
 
 SYS_PROMPT= """

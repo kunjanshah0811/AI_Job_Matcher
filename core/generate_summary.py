@@ -1,5 +1,5 @@
-from model import generate_response
-from test import resume, jd, jr, questions,ai_answers,user_answers,scores
+from core.model import generate_response
+from core.test import resume, jd, jr, questions,ai_answers,user_answers,scores
 
 def generate_summary_content(resume_text, job_desc_text, job_role, questions_list, 
                            user_answers, ai_answers, scores):

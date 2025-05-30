@@ -1,6 +1,6 @@
-from model import generate_response
-from test import resume,jd,jr
-from utils import trim_backticks
+from core.model import generate_response
+from core.test import resume,jd,jr
+from core.utils import trim_backticks
 
 import json
 
