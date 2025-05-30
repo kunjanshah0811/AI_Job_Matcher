@@ -4,8 +4,38 @@ import os
 import json  # Added import for JSON parsing
 from dotenv import load_dotenv
 from openai import OpenAI
-from response_evaluator import improvement_summary
-from utils import sample_scores
+
+from response_evaluator import improvement_summary, scorer
+from utils import sample_scores, least_scores
+from answering_competitor import Answering_competitor
+
+# Initialize session state variables
+if 'q_num' not in st.session_state:
+    st.session_state.q_num = 0
+if 'questions' not in st.session_state:
+    st.session_state.questions = []
+if 'processing_complete' not in st.session_state:
+    st.session_state.processing_complete = False
+if "final_feedback" not in st.session_state:
+    st.session_state["final_feedback"] = False
+if "resume_text" not in st.session_state:
+    st.session_state["resume_text"] = ""
+if "jd_text" not in st.session_state:
+    st.session_state["jd_text"] = ""
+if "track_score" not in st.session_state:
+    st.session_state["track_score"] = []
+
+
+for i in range(5):  # Assuming max 10 questions
+    if f"submitted_{i}" not in st.session_state:
+        st.session_state[f"submitted_{i}"] = False
+    if f"user_answer_{i}" not in st.session_state:
+        st.session_state[f"user_answer_{i}"] = None
+    if f"llm_answer_{i}" not in st.session_state:
+        st.session_state[f"llm_answer_{i}"] = None
+    if f"result_score_{i}" not in st.session_state:
+        st.session_state[f"result_score_{i}"] = dict()
+    
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -109,19 +139,11 @@ def default_questions():
         "What questions do you have about the role?"
     ]
 
-# Initialize session state variables
-if 'q_num' not in st.session_state:
-    st.session_state.q_num = 0
-if 'questions' not in st.session_state:
-    st.session_state.questions = []
-if 'processing_complete' not in st.session_state:
-    st.session_state.processing_complete = False
-if "final_feedback" not in st.session_state:
-    st.session_state["final_feedback"] = False
+
 
 #=== Sidebar: User Inputs ===#
 with st.sidebar:
-    st.title("AI-Job_Matcher – HiredGPT Duel")
+    st.title("AI-Job_Matcher - HiredGPT Duel")
 
     #1 Resume Upload
     st.header("1. Upload Your Resume")
@@ -149,6 +171,7 @@ with st.sidebar:
 
     #5 Submit Button
     submit = st.button("Submit - (Next: generate rival resume and interview questions)")
+
 
     # Status messages in sidebar
     if submit or st.session_state.processing_complete:
@@ -210,20 +233,45 @@ if submit:
     
     if resume_text and jd_text:
         # Show preview in main area
-        st.success("🎉 All files processed successfully!")
-        
-        with st.expander("📄 View Resume Preview", expanded=False):
-            st.write(resume_text[:3000] + "..." if len(resume_text) > 3000 else resume_text) 
-        with st.expander("📋 View Job Description Preview", expanded=False):
-            st.write(jd_text[:3000] + "..." if len(jd_text) > 3000 else jd_text)
+        st.session_state["resume_text"] = resume_text
+        st.session_state["jd_text"] = jd_text
 
         #3 Generate Interview Questions
         with st.spinner("🤖 Generating interview questions..."):
             st.session_state.questions = generate_question(resume_text, jd_text, job_role)
+        
+        with st.spinner("🔧 Initializing your interview competitor..."):
+            comp_ans_gen = Answering_competitor(resume=resume_text, 
+                                            job_description=jd_text, 
+                                            difficulty_level=improve_percentage,
+                                            questions=st.session_state.questions)
+            comp_ans_gen.extract_factors()
+            comp_ans_gen.determine_enhancement()
+            comp_ans_gen.generate_resume()
+
+        with st.spinner("🧠 Crafting rival candidate persona..."):
+            
+            comp_answers = comp_ans_gen.answer_questions()
+
+            for key, val in comp_answers.items():
+                # print(f"llm answer {key=}")
+                st.session_state[f"llm_answer_{key-1}"] = val
+
             st.session_state.processing_complete = True
             
         with st.sidebar:
             st.success("✅ Interview questions generated!")
+
+if st.session_state["resume_text"] and st.session_state["jd_text"]:
+    st.success("🎉 All files processed successfully!")
+    
+    with st.expander("📄 View Resume Preview", expanded=False):
+        st.write(st.session_state["resume_text"][:3000] + "..." if len(st.session_state["resume_text"]) > 3000 else st.session_state["resume_text"]) 
+    with st.expander("📋 View Job Description Preview", expanded=False):
+        st.write(st.session_state["jd_text"][:3000] + "..." if len(st.session_state["jd_text"]) > 3000 else st.session_state["jd_text"])
+
+def star_rating(n, out_of=5):
+    return "★" * n + "☆" * (out_of - n)
 
 
 # Show Interview Duel if processing is complete
@@ -236,30 +284,30 @@ if st.session_state.processing_complete and st.session_state.questions:
     if qn < len(questions):
         st.subheader(f"Question {qn+1}/{len(questions)}:")
         st.info(questions[qn])
-
-        if f"submitted_{qn}" not in st.session_state:
-            st.session_state[f"submitted_{qn}"] = False
-        
-        for i in range(len(questions)):
-            try:
-                print(f"Submitted state of {i}",st.session_state[f"submitted_{i}"])
-            except:
-                print(f"Submitted state of {i}: Doesnt Exist yet.")
         
         # Duel columns: User vs LLM
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("**👤 Your Answer:**")
-            user_answer = st.text_area("Type your answer here", key=f"user_ans_{qn}", height=150, label_visibility="collapsed")
+
+            user_input = st.text_area(
+                "Type your answer here",
+                value=st.session_state.get(f"user_answer_{qn}", ""),
+                key=f"user_ans_{qn}",
+                height=150,
+                label_visibility="collapsed"
+                )
+
 
         with col2:
-            st.markdown("**🤖 Rival's Answer:**")
-            if f"llm_answer_{qn}" not in st.session_state:
-                st.session_state[f"llm_answer_{qn}"] = f"This is a sample answer to question {qn}. In a real implementation, this would be generated by the LLM based on the question."
-    
+            st.markdown("**🤖 Rival's Answer:**")    
+
             llm_answer = st.session_state[f"llm_answer_{qn}"]
 
-            if st.session_state[f"submitted_{qn}"] == False:
+            if st.session_state[f"submitted_{qn}"]:
+                st.text_area("Competitor Response",llm_answer, height=150, key=f"comp_ans_{qn}", label_visibility="collapsed")
+            
+            else:
                 st.markdown("""
                 <style>
                 .blurred-text {
@@ -268,6 +316,7 @@ if st.session_state.processing_complete and st.session_state.questions:
                     border: 1px solid rgba(49, 51, 63, 0.2);
                     padding: 0.625rem;
                     min-height: 150px;
+                    max-height: 150px;
                     color: transparent;
                     text-shadow: 0 0 8px rgba(255,255,255,0.5);
                     font-family: 'Source Sans Pro', sans-serif;
@@ -284,15 +333,42 @@ if st.session_state.processing_complete and st.session_state.questions:
                 
                 # Display blurred text
                 st.markdown(f'<div class="blurred-text">{llm_answer}</div>', unsafe_allow_html=True)
-            else:
-                st.text_area("Competitor Response",llm_answer, height=150, key=f"comp_ans_{qn}", label_visibility="collapsed")
             
         
         left_col, center_col, right_col = st.columns([1,1,1])
         with center_col:
             if st.button("Submit Answer", key=f"submit_ans_{qn}", use_container_width=True):
+                st.session_state[f"user_answer_{qn}"] = st.session_state.get(f"user_ans_{qn}", "")
                 st.session_state[f"submitted_{qn}"] = True
                 st.rerun()
+                
+        
+        with right_col:
+            st.write("Submitted flag:", st.session_state.get(f"submitted_{qn}", False))
+            # st.write("User Answer:", st.session_state.get(f"user_answer_{qn}"))
+
+        
+        if st.session_state[f"submitted_{qn}"]:
+            st.session_state[f"result_score_{qn}"] = scorer(jd=st.session_state.jd_text, ques=questions[qn], 
+                            user=st.session_state[f"user_answer_{qn}"], competitor=st.session_state[f"llm_answer_{qn}"])
+            
+            result = st.session_state[f"result_score_{qn}"]
+            left_score, _,right_score = st.columns([4,1,4])
+            with left_score:
+                participant = result["user"]
+                st.markdown(f"**Structure:** {star_rating(participant['structure_star']['score'])}")
+                st.markdown(f"**Depth:** {star_rating(participant['depth']['score'])}")
+                st.markdown(f"**Clarity:** {star_rating(participant['clarity']['score'])}")
+                st.markdown(f"**Correctness:** {star_rating(participant['correctness']['score'])}")
+                st.session_state.track_score.append(participant)
+            with right_score:
+                participant = result["competitor"]
+                st.markdown(f"**Structure:** {star_rating(participant['structure_star']['score'])}")
+                st.markdown(f"**Depth:** {star_rating(participant['depth']['score'])}")
+                st.markdown(f"**Clarity:** {star_rating(participant['clarity']['score'])}")
+                st.markdown(f"**Correctness:** {star_rating(participant['correctness']['score'])}")
+
+
 
         # Scoring/Feedback
         col3, col4, col5 = st.columns([1, 1, 1])
@@ -327,7 +403,8 @@ if st.session_state.processing_complete and st.session_state.questions:
         st.progress(progress, text=f"Progress: {qn + 1}/{len(questions)} questions")
 
         if st.session_state["final_feedback"]:
-            feedback = improvement_summary(sample_scores())
+            feedback = improvement_summary(least_scores(st.session_state.track_score))
+            
             feedback_str = ""
             for key, value in feedback.items():
                 feedback_str += f"**{key}**: {value}\n\n"
@@ -345,3 +422,6 @@ if st.session_state.processing_complete:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
+
+
+# st.write(st.session_state)
