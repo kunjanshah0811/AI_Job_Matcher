@@ -1,5 +1,5 @@
-from model import generate_response
-from test import resume, jd,questions
+from core.model import generate_response
+from core.test import resume, jd,questions
 
 class Answering_competitor:
     def __init__(self,resume,job_description,difficulty_level,questions):
