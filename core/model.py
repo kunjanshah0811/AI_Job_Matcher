@@ -29,10 +29,10 @@ def generate_response(system_prompt: str, user_prompt: str, temp: float = 0.7):
             api_key=api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
         )
-        st.info("🤖 Using Gemini model")  # Debug message
+        # st.info("🤖 Using Gemini model")  # Debug message
         # Create chat completion request
         response = client.chat.completions.create(
-            model="gemini-2.0-flash-lite",
+            model="gemini-2.0-flash",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
