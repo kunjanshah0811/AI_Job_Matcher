@@ -16,6 +16,7 @@
 - [x] Add Groq Client in model.py.
 - [x] Create utils.py file.
 - [x] Create a separate file for the question agent
+- [ ] Integrate Whisper STT Agent
 
 ### UI Components (Assigned to: Aryman)
 - [x] Implement user per-question submit button
