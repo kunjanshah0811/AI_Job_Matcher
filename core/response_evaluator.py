@@ -2,6 +2,7 @@ from model import generate_response
 import json
 from typing import List
 from pydantic import BaseModel
+from utils import trim_backticks, Collect_score
 
 
 SYS_PROMPT= """
@@ -45,9 +46,6 @@ Your output must strictly follow this **parsable JSON format**:
 Only output a valid JSON object. Do not include any commentary, headers, or extra text outside of the JSON.
 
 """
-
-def trim_backticks(model_response: str):
-    return model_response[8:-4]
     
 
 def scorer(jd:str, ques: str, user: str, competitor: str):
@@ -69,16 +67,14 @@ def scorer(jd:str, ques: str, user: str, competitor: str):
         {competitor}
     """
     response = generate_response(system_prompt=SYS_PROMPT, user_prompt=user_prompt, temp=0.1)
+    print("Model Executed")
     if response.startswith("```"):
         response = trim_backticks(response)
     
     parsed_response = json.loads(response)
     return parsed_response
 
-class Collect_score(BaseModel):
-    category: str
-    score: str
-    improvement_tip: str
+
 
 def improvement_summary(scores: List[Collect_score]):
     system_prompt = """
@@ -161,8 +157,8 @@ if __name__ == "__main__":
             improvement_tip="include more in depth approach."
         )
     ]
-    summary = improvement_summary(scores)
-    print(summary)
+    # summary = improvement_summary(scores)
+    # print(summary)
 
     
     
