@@ -1,88 +1,52 @@
-import speech_recognition as sr
-import sounddevice as sd
-import wavio as wv
-import os
-import time
+import whisper
+import streamlit as st
 import pyttsx3
+import os
+import torch
+
+# Set PyTorch settings to avoid thread/loop errors
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
+
+@st.cache_resource(show_spinner="Loading speech recognition model...")
+def load_model():
+    """Load Whisper model with optimized settings"""
+    try:
+        # Use CPU device and weights_only to avoid torch serialization issues
+        return whisper.load_model(
+            "base",
+            device="cpu",
+            download_root="models",
+            in_memory=True
+        )
+    except Exception as e:
+        print(f"Model loading error: {e}")
+        return None
 
 def audio_to_text(audio_file_path=None):
-    """
-    Converts audio file to text using speech recognition.
-    If audio_file_path is provided, uses that file. Otherwise captures from microphone.
-    Returns the transcribed text or None if error.
-    """
-    r = sr.Recognizer()
-    text = None
+    """Converts audio file to text using Whisper"""
+    model = load_model()
+    if model is None:
+        return None
     
     try:
         if audio_file_path:
-            # Use provided audio file
-            with sr.AudioFile(audio_file_path) as source:
-                audio = r.record(source)
-        else:
-            # Original microphone capture logic
-            freq = 44100
-            duration = 180
-            channels = 1
-            recording_file = "recording.wav"
-            
-            print("🎤 You can answer now")
-            print(f"Recording will automatically stop after {duration} seconds")
-                     
-            recording = sd.rec(int(duration*freq), samplerate=freq, channels=channels)
-             
-            for i in range(duration):
-                time.sleep(1)
-                seconds_left = duration - i - 1
-                print(f"⏱️ {seconds_left} seconds remaining...", end="\r")
-                 
-            print("Thank you for your answer")
-            sd.wait()
-            wv.write(recording_file, recording, freq, sampwidth=2)
-            
-            with sr.AudioFile(recording_file) as source:
-                audio = r.record(source)
-            
-            # Clean up recording file
-            if os.path.exists(recording_file):
-                os.remove(recording_file)
-                     
-        text = r.recognize_google(audio)
-        return text
+            result = model.transcribe(audio_file_path, fp16=False)
+            return result["text"]
+        return None
         
-    except sr.UnknownValueError:
-        print("Sorry, I couldn't understand what you said. Please try again.")
-        return None
-    except sr.RequestError as e:
-        print(f"Speech recognition service error: {e}")
-        return None
     except Exception as e:
         print(f"Audio processing error: {e}")
         return None
 
-def text_to_audio(text: str, rate: int = 125, voice_idx: int = 0) -> None:
-    """
-    Converts text to speech using pyttsx3
-    Args:
-        text: Text to convert to speech
-        rate: Speech rate (default: 125)
-        voice_idx: Voice index to use (default: 1 for female voice)
-    """
-    try:
-        engine = pyttsx3.init()
-        voices = engine.getProperty("voices")
-        engine.setProperty("rate", rate)
-        engine.setProperty("voice", voices[voice_idx].id)
-        engine.say(text)
-        engine.runAndWait()
-    except Exception as e:
-        print(f"Text-to-speech error: {str(e)}")
-
+def text_to_audio(text):
+    """Converts text to speech using pyttsx3"""
+    engine = pyttsx3.init()
+    voices = engine.getProperty("voices")
+    engine.setProperty("rate", 125)
+    engine.setProperty("voice", voices[1].id)
+    engine.say(text)
+    engine.runAndWait()
 
 if __name__ == "__main__":
-    audio_to_text()
-    text_to_audio("""The key to effective software development lies in balancing technical excellence with practical solutions.
-                     In my experience at TechSolutions, 
-                     I implemented this philosophy by optimizing database queries which reduced load times by 40%. 
-                     I'm passionate about clean code and proper documentation, which has helped my teams maintain 
-                    systems efficiently over time. I'm excited to bring these skills to your cloud-based applications.""")
+    text_to_audio("Test speech conversion")

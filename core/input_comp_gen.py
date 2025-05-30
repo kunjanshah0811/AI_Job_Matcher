@@ -3,10 +3,13 @@ import json
 from typing import Dict, Any, List, Tuple
 from model import generate_response 
 from utils import FileProcessor 
-from speech_converter import audio_to_text, text_to_audio
+from speech_converter import audio_to_text, text_to_audio, load_model
 import tempfile
 import os
+import torch
 
+# Initialize the model through speech_converter
+whisper_model = load_model()
 
 def generate_question(resume_text, job_desc_text, job_role):
     system_prompt = "You are an experienced technical interviewer and JSON generator. You create professional interview questions and respond only with valid JSON arrays. Never include explanations, markdown formatting, or any text outside the JSON array."
@@ -221,6 +224,7 @@ if st.session_state.processing_complete and st.session_state.questions:
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("**👤 Your Answer:**")
+            # Check if answer already submitted 
             current_answer = st.session_state.user_answers.get(qn, "")
             answer_submitted = qn in st.session_state.user_answers
             
@@ -240,39 +244,42 @@ if st.session_state.processing_complete and st.session_state.questions:
                 st.markdown("🎤 **Record your answer:**")
                 audio_file = st.audio_input("Record audio", key=f"audio_input_{qn}")
                 
-                # Process audio if available
+                # Process audio if available using Whisper
                 if audio_file is not None:
-                    #with st.spinner("🎧 Converting speech to text..."):
-                        try:
-                            # Save audio to temporary file
-                            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
-                                # Read bytes from UploadedFile object
-                                audio_file.seek(0)  # Reset file pointer
-                                tmp_file.write(audio_file.read())
-                                tmp_file_path = tmp_file.name
+                    try:
+                        # Save audio to temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+                            # Read bytes from UploadedFile object
+                            audio_file.seek(0)  # Reset file pointer
+                            audio_data = audio_file.read()
                             
-                            # Convert audio to text using speech_converter
-                            transcribed_text = audio_to_text(tmp_file_path)
-                            
-                            # Clean up temporary file
-                            os.unlink(tmp_file_path)
-                            
-                            if transcribed_text:
-                                st.session_state[f"transcribed_text_{qn}"] = transcribed_text
-                                with st.sidebar:
-                                    st.success("✅ Audio transcribed successfully!")
-                            else:
-                                with st.sidebar:
-                                    st.error("❌ Could not understand the audio. Please try again.")
-                                
-                        except Exception as e:
+                            # Write raw audio data to temporary file
+                            tmp_file.write(audio_data)
+                            tmp_file_path = tmp_file.name
+                        
+                        # Convert audio to text using Whisper directly
+                        result = whisper_model.transcribe(tmp_file_path)
+                        transcribed_text = result["text"]
+                        
+                        # Clean up temporary file
+                        os.unlink(tmp_file_path)
+                        
+                        if transcribed_text:
+                            st.session_state[f"transcribed_text_{qn}"] = transcribed_text
                             with st.sidebar:
-                                st.error(f"❌ Audio processing error: {str(e)}")
-                            if 'tmp_file_path' in locals():
-                                try:
-                                    os.unlink(tmp_file_path)
-                                except:
-                                    pass
+                                st.success("✅ Audio transcribed successfully!")
+                        else:
+                            with st.sidebar:
+                                st.error("❌ Could not understand the audio. Please try again.")
+                            
+                    except Exception as e:
+                        with st.sidebar:
+                            st.error(f"❌ Audio processing error: {str(e)}")
+                        if 'tmp_file_path' in locals():
+                            try:
+                                os.unlink(tmp_file_path)
+                            except:
+                                pass
                 
                 # Text area with transcribed text or manual input
                 initial_text = st.session_state.get(f"transcribed_text_{qn}", current_answer)
