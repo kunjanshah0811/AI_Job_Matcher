@@ -86,7 +86,20 @@ def generate_question(resume_text, job_desc_text, job_role):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
+    try:
+        response = client.chat.completions.create(
+            model="gemini-2.0-flash-lite",
+            messages=[
+                {"role": "system", "content": "You are a JSON generator. You only respond with valid JSON arrays. Never include explanations or markdown formatting."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
 
+        )
+    except:
+        st.error("Openai server unavailable.")
+        return default_questions()
+    
         )
     except:
         st.error("Openai server unavailable.")
@@ -163,6 +176,7 @@ with st.sidebar:
 
     #3 Improvement Percentage or Manual Input
     st.header("3. Star Competitor Settings")
+    improve_percentage = st.slider("How much stronger should the rival be? (%)", min_value=10, max_value=100, value=10, step=10)
     improve_percentage = st.slider("How much stronger should the rival be? (%)", min_value=10, max_value=100, value=10, step=10)
 
     #4 Job Role/Title Input
