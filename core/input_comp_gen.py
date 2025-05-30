@@ -86,20 +86,6 @@ def generate_question(resume_text, job_desc_text, job_role):
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-    try:
-        response = client.chat.completions.create(
-            model="gemini-2.0-flash-lite",
-            messages=[
-                {"role": "system", "content": "You are a JSON generator. You only respond with valid JSON arrays. Never include explanations or markdown formatting."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-
-        )
-    except:
-        st.error("Openai server unavailable.")
-        return default_questions()
-    
         )
     except:
         st.error("Openai server unavailable.")
