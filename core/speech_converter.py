@@ -60,13 +60,23 @@ def audio_to_text(audio_file_path=None):
         print(f"Audio processing error: {e}")
         return None
 
-def text_to_audio(text):
-    engine=pyttsx3.init()
-    voices=engine.getProperty("voices")
-    engine.setProperty("rate",125)
-    engine.setProperty("voice",voices[1].id)
-    engine.say(text)
-    engine.runAndWait()
+def text_to_audio(text: str, rate: int = 125, voice_idx: int = 0) -> None:
+    """
+    Converts text to speech using pyttsx3
+    Args:
+        text: Text to convert to speech
+        rate: Speech rate (default: 125)
+        voice_idx: Voice index to use (default: 1 for female voice)
+    """
+    try:
+        engine = pyttsx3.init()
+        voices = engine.getProperty("voices")
+        engine.setProperty("rate", rate)
+        engine.setProperty("voice", voices[voice_idx].id)
+        engine.say(text)
+        engine.runAndWait()
+    except Exception as e:
+        print(f"Text-to-speech error: {str(e)}")
 
 
 if __name__ == "__main__":

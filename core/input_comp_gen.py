@@ -3,7 +3,7 @@ import json
 from typing import Dict, Any, List, Tuple
 from model import generate_response 
 from utils import FileProcessor 
-from speech_converter import audio_to_text  
+from speech_converter import audio_to_text, text_to_audio
 import tempfile
 import os
 
@@ -242,7 +242,7 @@ if st.session_state.processing_complete and st.session_state.questions:
                 
                 # Process audio if available
                 if audio_file is not None:
-                    with st.spinner("🎧 Converting speech to text..."):
+                    #with st.spinner("🎧 Converting speech to text..."):
                         try:
                             # Save audio to temporary file
                             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
@@ -286,11 +286,28 @@ if st.session_state.processing_complete and st.session_state.questions:
 
         with col2:
             st.markdown("**🤖 Rival's Answer:**")
+            
+            # Generate answer button
             if st.button("Generate Rival's Answer", key=f"rival_ans_{qn}"):
-                # Place your LLM call here to get the rival's answer
+                # Store LLM answer in session state
+                llm_answer = "This is how the star applicant would answer."  # Replace with actual LLM call
+                st.session_state[f"rival_answer_{qn}"] = llm_answer
+                st.rerun()
+            
+            # Show answer and play button if answer exists
+            if f"rival_answer_{qn}" in st.session_state:
+                st.write(st.session_state[f"rival_answer_{qn}"])
                 
-                llm_answer = "This is how the star applicant would answer."
-                st.write(llm_answer)
+                # Separate play button
+                col_space, col_play, col_space2 = st.columns([1, 2, 1])
+                with col_play:
+                    if st.button("🔊 Play Answer", key=f"play_rival_{qn}", use_container_width=True):
+                        try:
+                            #with st.spinner("🎧 Converting text to speech..."):
+                            text_to_audio(st.session_state[f"rival_answer_{qn}"])
+                            st.success("✅ Speech completed!")
+                        except Exception as e:
+                            st.error(f"❌ Speech generation error: {str(e)}")
         
         # Centered Submit Answer Button (spans both columns)
         if not answer_submitted:            
