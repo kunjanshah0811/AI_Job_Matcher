@@ -1,8 +1,12 @@
 import streamlit as st
 import json  
-from model import generate_response 
-from utils import FileProcessor  
 from typing import Dict, Any, List, Tuple
+from model import generate_response 
+from utils import FileProcessor 
+from speech_converter import audio_to_text  
+import tempfile
+import os
+
 
 def generate_question(resume_text, job_desc_text, job_role):
     system_prompt = "You are an experienced technical interviewer and JSON generator. You create professional interview questions and respond only with valid JSON arrays. Never include explanations, markdown formatting, or any text outside the JSON array."
@@ -229,31 +233,82 @@ if st.session_state.processing_complete and st.session_state.questions:
                     height=150,
                     disabled=True
                 )
-                st.success("✅ Answer submitted successfully!")
+                with st.sidebar:
+                    st.success("✅ Answer submitted successfully!")
             else:
-                # Allow editing only if answer not submitted
+                # Audio input button
+                st.markdown("🎤 **Record your answer:**")
+                audio_file = st.audio_input("Record audio", key=f"audio_input_{qn}")
+                
+                # Process audio if available
+                if audio_file is not None:
+                    with st.spinner("🎧 Converting speech to text..."):
+                        try:
+                            # Save audio to temporary file
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+                                # Read bytes from UploadedFile object
+                                audio_file.seek(0)  # Reset file pointer
+                                tmp_file.write(audio_file.read())
+                                tmp_file_path = tmp_file.name
+                            
+                            # Convert audio to text using speech_converter
+                            transcribed_text = audio_to_text(tmp_file_path)
+                            
+                            # Clean up temporary file
+                            os.unlink(tmp_file_path)
+                            
+                            if transcribed_text:
+                                st.session_state[f"transcribed_text_{qn}"] = transcribed_text
+                                with st.sidebar:
+                                    st.success("✅ Audio transcribed successfully!")
+                            else:
+                                with st.sidebar:
+                                    st.error("❌ Could not understand the audio. Please try again.")
+                                
+                        except Exception as e:
+                            with st.sidebar:
+                                st.error(f"❌ Audio processing error: {str(e)}")
+                            if 'tmp_file_path' in locals():
+                                try:
+                                    os.unlink(tmp_file_path)
+                                except:
+                                    pass
+                
+                # Text area with transcribed text or manual input
+                initial_text = st.session_state.get(f"transcribed_text_{qn}", current_answer)
                 user_answer = st.text_area(
                     "Type your answer here (max 500 characters)", 
-                    value=current_answer,
+                    value=initial_text,
                     key=f"user_ans_{qn}", 
                     height=150,
                     max_chars=500
                 )
+
+        with col2:
+            st.markdown("**🤖 Rival's Answer:**")
+            if st.button("Generate Rival's Answer", key=f"rival_ans_{qn}"):
+                # Place your LLM call here to get the rival's answer
                 
-                if st.button("Submit Answer", key=f"submit_ans_{qn}"):
+                llm_answer = "This is how the star applicant would answer."
+                st.write(llm_answer)
+        
+        # Centered Submit Answer Button (spans both columns)
+        if not answer_submitted:            
+            _, center_col, _ = st.columns([1, 2, 1])
+            with center_col:
+                if st.button("🚀 Submit Answer", key=f"submit_ans_{qn}", type="primary", use_container_width=True):
+                    # Get answer directly from text area instead of session state
                     if len(user_answer.strip()) == 0:
                         st.error("Please provide an answer before submitting.")
                     elif len(user_answer) > 500:
                         st.error("Answer exceeds 500 characters limit.")
                     else:
+                        # Store answer directly in user_answers
                         st.session_state.user_answers[qn] = user_answer
+                        # Clear temporary storage
+                        if f"temp_answer_{qn}" in st.session_state:
+                            del st.session_state[f"temp_answer_{qn}"]
                         st.rerun()
-        with col2:
-            st.markdown("**🤖 Rival's Answer:**")
-            if st.button("Generate Rival's Answer", key=f"rival_ans_{qn}"):
-                # Place your LLM call here to get the rival's answer
-                llm_answer = "This is how the star applicant would answer."
-                st.write(llm_answer)
 
         # Scoring/Feedback
         col3, col4, col5 = st.columns([1, 1, 1])
@@ -281,6 +336,7 @@ if st.session_state.processing_complete and st.session_state.questions:
                 if st.button("⬅️ Previous Question", key=f"prev_{qn}"):
                     st.session_state.q_num -= 1
                     st.rerun()
+
 
         # Progress bar
         progress = (qn + 1) / len(questions)
