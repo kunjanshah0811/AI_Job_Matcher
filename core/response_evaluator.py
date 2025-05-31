@@ -66,7 +66,6 @@ def scorer(jd:str, ques: str, user: str, competitor: str):
         {competitor}
     """
     response = generate_response(system_prompt=SYS_PROMPT, user_prompt=user_prompt, temp=0.1)
-    print("Model Executed")
     if response.startswith("```"):
         response = trim_backticks(response)
     
