@@ -1,3 +1,7 @@
+import os
+os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
+os.environ["PYTORCH_DISABLE_WIN_FIX"] = "1"
+
 import streamlit as st
 import json
 from datetime import datetime
@@ -8,7 +12,7 @@ from core.answering_competitor import Answering_competitor
 from core.response_evaluator import scorer
 from core.summary_utils import custom_css, generate_text_summary, clean_json_response
 from core.generate_summary import generate_summary_content
-
+from core.speech_converter import text_to_audio, load_model
 
 # Page configuration
 st.set_page_config(
@@ -16,6 +20,8 @@ st.set_page_config(
     page_icon="🤖",
     layout="wide"
 )
+
+whisper_model = load_model()
 
 if 'questions_generated' not in st.session_state:
     st.session_state.questions_generated = []
@@ -69,16 +75,6 @@ if st.session_state.page_stack[-1] == "Loading":
 
 if st.session_state.page_stack[-1] == "Summary":    
     st.markdown(custom_css, unsafe_allow_html=True)
-
-
-    # with st.container(border=True):
-
-    #     if "improvement_summary" not in st.session_state or not st.session_state["improvement_summary"]:
-    #         st.session_state["improvement_summary"] = improvement_summary(least_scores(st.session_state.track_score))
-            
-    #     for i in st.session_state["improvement_summary"].split("\n"):
-    #         st.markdown(i)
-    
     st.session_state.user_answers = [st.session_state[f"user_answer_{ques}"] for ques in range(len(st.session_state.questions))]
     st.session_state.ai_answers = [st.session_state[f"llm_answer_{ques}"] for ques in range(len(st.session_state.questions))]
     st.session_state.scores = [
@@ -301,6 +297,7 @@ if st.session_state.page_stack[-1].startswith("Ques_"):
     with user_ans:
         st.markdown("**👤 Your Answer:**")
         if f"submitted_ans_{ques}" in st.session_state and st.session_state[f"submitted_ans_{ques}"]:
+            st.audio_input(label="Record Audio",disabled=True, label_visibility="collapsed")
             st.text_area(
                     "Type your answer here",
                     value=st.session_state[f"user_answer_{ques}"],
@@ -308,19 +305,40 @@ if st.session_state.page_stack[-1].startswith("Ques_"):
                     label_visibility="collapsed",
                     disabled=True
                     )
+            
+            
         else:
+            audio_file = st.audio_input(label="Record Audio",key=f"audio_ip_{ques}" ,label_visibility="collapsed")
+            transcribed_text = ""
+            if audio_file:
+                file_path = os.path.join("audio",f"user_answer_{ques}.wav")
+                try:
+                    with open(file_path, "wb") as f:
+                        audio_file.seek(0)
+                        f.write(audio_file.read())
+
+                    transcribed_text = whisper_model.transcribe(file_path)["text"]
+                    # print(st.session_state[f"transcribed_{ques}"])
+                    # st.rerun()
+                except Exception as e:
+                    st.error(f"Error occured while transcribing {e}")
+            
             user_answer = st.text_area(
                     "Type your answer here",
-                    value="",
+                    value= transcribed_text,
                     height=150,
                     label_visibility="collapsed",
                     )
+
+                    
 
 
     with llm_ans:
         st.markdown("**🤖 Rival's Answer:**")
         if f"submitted_ans_{ques}" in st.session_state and st.session_state[f"submitted_ans_{ques}"]:
             st.text_area("Competitor Response",st.session_state[f"llm_answer_{ques}"], height=150, label_visibility="collapsed")
+            st.audio(data=os.path.join("audio",f"llm_answer_{ques}.wav"))
+
         else:
             # st.text_area("Competitor Response",value="Hidden values", height=150, label_visibility="collapsed")
             st.markdown(f"""
@@ -346,12 +364,20 @@ if st.session_state.page_stack[-1].startswith("Ques_"):
                     {st.session_state[f"llm_answer_{ques}"]}
                 </div>
                 """, unsafe_allow_html=True)
+            try:
+                os.makedirs("audio",exist_ok=True)
+                text_to_audio(st.session_state[f"llm_answer_{ques}"], os.path.join("audio",f"llm_answer_{ques}.wav"))
+            except Exception as e:
+                print(e)
+                st.error(f"An error occurred {e}")
 
-    _,submit_area,_ = st.columns([1,1,1])
+    left_area,_ = st.columns([1,1])
+    _, submit_area, _  = left_area.columns([1,3,1])
     with submit_area:
-        if st.button("Submit Answer", use_container_width=True):
+        if st.button("🚀 Submit & Compare Answers", use_container_width=True, type="primary"):
             st.session_state[f"submitted_ans_{ques}"] = True
             st.session_state[f"user_answer_{ques}"] = user_answer
+            print("User answer\n",st.session_state[f"user_answer_{ques}"])
             st.rerun()
     
     
@@ -399,7 +425,7 @@ if st.session_state.page_stack[-1].startswith("Ques_"):
 
     with next:
         if ques < len(st.session_state.questions)-1:
-            if st.button("➡️ Next Question"):
+            if st.button("Next Question ➡️"):
                 st.session_state.page_stack.append(f"Ques_{ques+1}")
                 st.rerun()
         if ques == len(st.session_state.questions) -1:

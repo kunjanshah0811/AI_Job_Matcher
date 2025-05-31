@@ -1,12 +1,10 @@
 import streamlit as st
-import json  
-from typing import Dict, Any, List, Tuple
+import json
 from model import generate_response 
 from utils import FileProcessor 
-from speech_converter import audio_to_text, text_to_audio, load_model
+from speech_converter import text_to_audio, load_model
 import tempfile
 import os
-import torch
 
 # Initialize the model through speech_converter
 whisper_model = load_model()

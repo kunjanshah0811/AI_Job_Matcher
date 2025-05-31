@@ -1,7 +1,6 @@
 from core.model import generate_response
 import json
 from typing import List
-from pydantic import BaseModel
 from core.utils import trim_backticks, Collect_score
 
 
