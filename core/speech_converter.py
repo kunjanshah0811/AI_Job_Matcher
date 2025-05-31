@@ -4,6 +4,10 @@ import wavio as wv
 import os
 import time
 import pyttsx3
+from huggingface_hub import InferenceClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def audio_to_text():
     """
@@ -50,18 +54,42 @@ def audio_to_text():
             os.remove(recording_file)
 
 def text_to_audio(text):
-    engine=pyttsx3.init()
-    voices=engine.getProperty("voices")
-    engine.setProperty("rate",125)
-    engine.setProperty("voice",voices[1].id)
-    engine.say(text)
-    engine.runAndWait()
+    # engine=pyttsx3.init()
+    # voices=engine.getProperty("voices")
+    # engine.setProperty("rate",130)
+    # engine.setProperty("voice",voices[1].id)
+    # engine.say(text)
+    # engine.runAndWait()
+    client = InferenceClient(
+        provider="fal-ai",
+        api_key=os.getenv("TEXT_TO_AUDIO"),
+    )
+
+    # audio is returned as bytes
+    audio_bytes=client.text_to_speech(
+        text,
+        model="hexgrad/Kokoro-82M",
+    )
+
+    with open("output.wav", "wb") as f:
+        f.write(audio_bytes)
 
 
 if __name__ == "__main__":
-    audio_to_text()
+    #audio_to_text()
     text_to_audio("""The key to effective software development lies in balancing technical excellence with practical solutions.
                      In my experience at TechSolutions, 
                      I implemented this philosophy by optimizing database queries which reduced load times by 40%. 
                      I'm passionate about clean code and proper documentation, which has helped my teams maintain 
-                    systems efficiently over time. I'm excited to bring these skills to your cloud-based applications.""")
+                    systems efficiently over time. I'm excited to bring these skills to your cloud-based applications.
+                  "The key to effective software development lies in balancing technical excellence with practical solutions.
+                     In my experience at TechSolutions, 
+                     I implemented this philosophy by optimizing database queries which reduced load times by 40%. 
+                     I'm passionate about clean code and proper documentation, which has helped my teams maintain 
+                    systems efficiently over time. I'm excited to bring these skills to your cloud-based applications.
+                  "The key to effective software development lies in balancing technical excellence with practical solutions.
+                     In my experience at TechSolutions, 
+                     I implemented this philosophy by optimizing database queries which reduced load times by 40%. 
+                     I'm passionate about clean code and proper documentation, which has helped my teams maintain 
+                    systems efficiently over time. I'm excited to bring these skills to your cloud-based applications.
+                  """)
