@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -7,19 +7,30 @@ RUN apt-get update && apt-get install -y \
     curl \
     software-properties-common \
     git \
+    ffmpeg \
+    espeak \
+    espeak-data \
+    libespeak1 \
+    libespeak-dev \
+    festival \
+    alsa-utils \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/kunjanshah0811/AI_Job_Matcher.git .
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip3 install --no-cache-dir streamlit
+# Add uv to PATH
+ENV PATH="/root/.cargo/bin:/root/.local/bin:$PATH"
+
+COPY . .
+
+RUN uv pip install --system --no-cache -r requirements.txt
+RUN uv pip install --system --no-cache streamlit
 
 # Use $PORT environment variable that Render sets
 ENV PORT=8501
 
 EXPOSE $PORT
 
-HEALTHCHECK CMD curl --fail http://localhost:$PORT/_stcore/health
-
-# Use ENTRYPOINT with python -m for more reliable execution
-ENTRYPOINT ["sh", "-c", "python -m streamlit run Home.py --server.port=$PORT --server.address=0.0.0.0"]
+# Use uv with python -m for more reliable streamlit execution
+ENTRYPOINT ["sh", "-c", "uv run python -m streamlit run app.py --server.port=$PORT --server.address=0.0.0.0"]
