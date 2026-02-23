@@ -73,6 +73,7 @@ if st.session_state.page_stack[-1] == "Loading":
     st.session_state.page_stack.append("Ques_0")
     st.rerun()
 
+
 if st.session_state.page_stack[-1] == "Summary":    
     st.markdown(custom_css, unsafe_allow_html=True)
     st.session_state.user_answers = [st.session_state[f"user_answer_{ques}"] for ques in range(len(st.session_state.questions))]
@@ -286,6 +287,16 @@ if st.session_state.page_stack[-1] == "Summary":
 if st.session_state.page_stack[-1].startswith("Ques_"):
     ques = int(st.session_state.page_stack[-1][-1])
 
+    # Initialize session state keys if they don't exist
+    if f"user_answer_{ques}" not in st.session_state:
+        st.session_state[f"user_answer_{ques}"] = ""
+    
+    if f"submitted_ans_{ques}" not in st.session_state:
+        st.session_state[f"submitted_ans_{ques}"] = False
+    
+    if f"result_score_{ques}" not in st.session_state:
+        st.session_state[f"result_score_{ques}"] = None
+
     st.header("🥊 Interview Duel")
     st.subheader(f"Question {ques+1}/{len(st.session_state.questions)}")
     
@@ -329,9 +340,6 @@ if st.session_state.page_stack[-1].startswith("Ques_"):
                     height=150,
                     label_visibility="collapsed",
                     )
-
-                    
-
 
     with llm_ans:
         st.markdown("**🤖 Rival's Answer:**")
@@ -542,5 +550,3 @@ with st.sidebar:
                 st.session_state.jd_text = jd_text
                 st.session_state.page_stack.append("Loading")
                 st.rerun()
-
-    

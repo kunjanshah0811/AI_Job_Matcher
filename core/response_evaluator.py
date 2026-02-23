@@ -1,3 +1,5 @@
+from sympy import re
+import re
 from core.model import generate_response
 import json
 from typing import List
@@ -66,13 +68,25 @@ def scorer(jd:str, ques: str, user: str, competitor: str):
         {competitor}
     """
     response = generate_response(system_prompt=SYS_PROMPT, user_prompt=user_prompt, temp=0.1)
+    response = response.strip()
     if response.startswith("```"):
         response = trim_backticks(response)
+        response = re.sub(r'^```json?\n?', '', response)
+        response = re.sub(r'\n?```$', '', response)
     
-    parsed_response = json.loads(response)
+    # Fix missing opening brace
+    if not response.startswith("{"):
+        response = "{" + response
+        # Fix missing closing brace
+    if not response.endswith("}"):
+        response = response + "}"
+
+    try:
+        parsed_response = json.loads(response)
+    except json.JSONDecodeError as e:
+        print(f"Raw response: {response}")
+        raise e
     return parsed_response
-
-
 
 def improvement_summary(scores: List[Collect_score]):
     system_prompt = """

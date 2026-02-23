@@ -58,7 +58,7 @@ def generate_response(system_prompt: str, user_prompt: str, temp: float = 0.7):
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 temperature=temp
             )
             
