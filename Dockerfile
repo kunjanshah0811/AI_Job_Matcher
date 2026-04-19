@@ -5,7 +5,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    software-properties-common \
     git \
     ffmpeg \
     espeak \
@@ -28,7 +27,7 @@ RUN uv pip install --system --no-cache -r requirements.txt
 RUN uv pip install --system --no-cache streamlit
 
 # Use $PORT environment variable that Render sets
-ENV PORT=8501
+ENV PORT=8080
 
 EXPOSE $PORT
 
