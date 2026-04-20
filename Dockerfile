@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     ffmpeg \
-    espeak \
-    espeak-data \
-    libespeak1 \
-    libespeak-dev \
+    espeak-ng \
+    espeak-ng-data \
+    libespeak-ng1 \
+    libespeak-ng-dev \
     festival \
     alsa-utils \
     && rm -rf /var/lib/apt/lists/*
@@ -26,10 +26,7 @@ COPY . .
 RUN uv pip install --system --no-cache -r requirements.txt
 RUN uv pip install --system --no-cache streamlit
 
-# Use $PORT environment variable that Render sets
 ENV PORT=8080
-
 EXPOSE $PORT
 
-# Use uv with python -m for more reliable streamlit execution
 ENTRYPOINT ["sh", "-c", "uv run python -m streamlit run app.py --server.port=$PORT --server.address=0.0.0.0"]
