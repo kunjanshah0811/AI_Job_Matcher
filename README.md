@@ -4,6 +4,13 @@ A competitive interview simulation platform that shows how you stack up against 
 <img alt="HiredGPT Duel" src="https://img.shields.io/badge/Status-In Development-yellow">
 <img alt="Python" src="https://img.shields.io/badge/Python-3.9+-blue">
 <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.28+-red">
+<img alt="Deployed" src="https://img.shields.io/badge/Deployed-GCP Cloud Run-4285F4">
+
+---
+## 🌐 Live Demo
+**Try it now:** [HiredGPT Duel on GCP](https://ai-job-matcher-824550595135.us-central1.run.app/)
+
+> The app is deployed on Google Cloud Run. First load may take 30-60 seconds as the instance starts up.
 
 ---
 
