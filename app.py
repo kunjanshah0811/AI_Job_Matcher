@@ -37,8 +37,8 @@ if st.session_state.page_stack[-1] == "Welcome":
     st.markdown("""
     ### 🎯 How it works:
     1. **📄 Upload your resume** in the sidebar
-    2. **📋 Provide job description** (upload file or paste text)
-    3. **⭐ Set competitor strength** (how challenging should it be?)
+    2. **📋 Provide job description** (Upload file or paste text)
+    3. **⭐ Set competitor strength** (How challenging should it be?)
     4. **💼 Enter the job role** you're applying for
     5. **🚀 Click submit** to start the duel!
     
