@@ -1,0 +1,54 @@
+name: Deploy to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - main  # triggers only when you push to main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Pull your code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Authenticate to GCP using your service account key
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Step 3: Set up gcloud CLI
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: streamlit-ai-app-493823
+
+      # Step 4: Allow gcloud to push Docker images
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      # Step 5: Build image in GCP and push to Artifact Registry
+      - name: Build and push image via Cloud Build
+        run: |
+          gcloud builds submit \
+            --tag us-central1-docker.pkg.dev/streamlit-ai-app-493823/streamlit-repo/ai-job-matcher:latest \
+            --project=streamlit-ai-app-493823 \
+            .
+
+      # Step 6: Deploy the new image to Cloud Run
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ai-job-matcher \
+            --image=us-central1-docker.pkg.dev/streamlit-ai-app-493823/streamlit-repo/ai-job-matcher:latest \
+            --platform=managed \
+            --region=us-central1 \
+            --allow-unauthenticated \
+            --port=8080 \
+            --memory=2Gi \
+            --cpu=2 \
+            --project=streamlit-ai-app-493823 \
+            --set-secrets="GEMINI_API_KEY=GEMINI_API_KEY:latest,GROQ_API_KEY=GROQ_API_KEY:latest,TEXT_TO_AUDIO=TEXT_TO_AUDIO:latest"
